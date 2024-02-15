@@ -1,0 +1,59 @@
+---
+- name: Create airflow group
+  ansible.builtin.group:
+    name: 'root'
+    state: present
+    system: true
+  become: true
+
+- name: Add the airflow user with a bash shell, appending the group 'sudo' and 'airflow' to the user's groups
+  ansible.builtin.user:
+    name: "{{ airflow_user }}"
+    groups: remote,sudo,{{ airflow_group }}
+    append: true
+    state: present
+    system: true
+    home: "/home/airflow"
+  become: true
+
+- name: Create airflow directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ airflow_remote_server_path }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+    recurse: true
+  become: true
+
+- name: Create airflow run directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ airflow_remote_server_path }}/run"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+    recurse: true
+  become: true
+
+- name: Create airflow dags directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ airflow_remote_server_path }}/dags"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+    recurse: true
+  become: true
+
+- name: Create airflow sysconfig directory if it does not exist
+  ansible.builtin.file:
+    path: "/etc/sysconfig"
+    state: directory
+  become: true
+
+- name: Configuration | set log directory and cluster metadata
+  ansible.builtin.import_tasks: configuration.yaml
+
+- name: Monitoring | set statsd exporter
+  ansible.builtin.import_tasks: monitoring.yaml

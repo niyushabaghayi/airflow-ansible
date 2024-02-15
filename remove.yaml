@@ -1,0 +1,5 @@
+---
+- hosts: airflow
+  roles:
+    - remove-prerequisites
+    - remove-airflow

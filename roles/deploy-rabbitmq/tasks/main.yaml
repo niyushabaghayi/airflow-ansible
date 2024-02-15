@@ -1,0 +1,81 @@
+---
+- name: Create rabbitmq group
+  ansible.builtin.group:
+    name: '{{ rabbitmq_group }}'
+    state: present
+    system: true
+  become: true
+
+- name: Add the rabbitmq user with a bash shell, appending the group 'sudo' and 'rabbitmq' to the user's groups
+  ansible.builtin.user:
+    name: "{{ rabbitmq_user }}"
+    groups: remote,sudo,{{ rabbitmq_group }}
+    append: true
+    state: present
+    createhome: true
+    system: true
+  become: true
+
+- name: Create rabbitmq directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ rabbitmq_remote_server_path }}"
+    state: directory
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+    mode: 0755
+  become: true
+
+- name: Create rabbitmq logs directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ rabbitmq_remote_server_path }}/logs"
+    state: directory
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+    mode: 0755
+  become: true
+
+- name: Create rabbitmq mnesia directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ rabbitmq_remote_server_path }}/mnesia"
+    state: directory
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+    mode: 0755
+  become: true
+
+# - name: Create rabbitmq plugins directory if it does not exist
+#   ansible.builtin.file:
+#     path: "{{ rabbitmq_remote_server_path }}/plugins"
+#     state: directory
+#     owner: "{{ rabbitmq_user }}"
+#     group: "{{ rabbitmq_group }}"
+#     mode: 0755
+#   become: true
+
+- name: Change /etc/rabbitmq ownership, group and permissions
+  ansible.builtin.file:
+    path: "/etc/rabbitmq"
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+  become: true
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    pkg:
+      - "{{ item }}"
+  with_items: "{{ dependencies }}"
+  become: true
+
+- name: Install Erlang dependencies
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    pkg:
+      - "{{ item }}"
+  with_items: "{{ erlang_dependencies }}"
+  become: true
+
+- name: Configuration | set log directory and cluster metadata
+  ansible.builtin.import_tasks: configuration.yaml

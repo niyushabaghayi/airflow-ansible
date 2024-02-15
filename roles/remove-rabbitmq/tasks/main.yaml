@@ -1,0 +1,51 @@
+---
+- name: Fix broken package
+  ansible.builtin.apt:
+    state: fixed
+  become: true
+
+- name: Remove RabbitMQ package
+  ansible.builtin.apt:
+    autoremove: yes
+    name: rabbitmq-server
+    state: absent
+  become: true
+
+- name: Remove Erlang dependencies
+  ansible.builtin.apt:
+    autoremove: yes
+    state: absent
+    pkg:
+      - "{{ item }}"
+  with_items: "{{ erlang_dependencies }}"
+  become: true
+
+- name: Find files with "erlang" in their name
+  find:
+    paths: "/"
+    patterns: "*erlang*"
+    recurse: yes
+  register: erlang_files
+  become: true
+
+- name: Remove Erlang files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ erlang_files.files }}"
+  become: true
+
+- name: Find files with "rabbitmq" in their name
+  find:
+    paths: "/"
+    patterns: "*rabbitmq*"
+    recurse: yes
+  register: rabbitmq_files
+  become: true
+
+- name: Remove RabbitMQ files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ rabbitmq_files.files }}"
+  become: true

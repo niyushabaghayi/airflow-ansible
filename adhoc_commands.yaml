@@ -1,0 +1,34 @@
+sudo fdisk /dev/sdj
+sudo pvcreate /dev/sdj1 
+sudo vgcreate bigdata /dev/sdj1
+sudo lvcreate -L 100G -n data bigdata
+sudo mkfs.ext4 /dev/bigdata/data
+sudo mkdir /bigdata
+sudo mount /dev/bigdata/data /bigdata
+blkid
+vim /etc/fstab
+
+sudo vim /etc/iptables/rules.v4
+sudo iptables-restore  /etc/iptables/rules.v4
+
+curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | sudo gpg --dearmor | sudo tee ~/Desktop/Soshyant/airflow-ansible/roles/deploy-rabbitmq/com.rabbitmq.team.gpg > /dev/null
+curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key | sudo gpg --dearmor | sudo tee ~/Desktop/Soshyant/airflow-ansible/roles/deploy-rabbitmq/rabbitmq.E495BB49CC4BBE5B.gpg > /dev/null
+curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key | sudo gpg --dearmor | sudo tee ~/Desktop/Soshyant/airflow-ansible/roles/deploy-rabbitmq/rabbitmq.9F4587F226208342.gpg > /dev/null
+
+sudo systemctl unmask rabbitmq-server.service
+sudo systemctl start rabbitmq-server
+
+sudo rabbitmqctl add_user <your_rabbitmq_web_user> <your_rabbitmq_web_password>
+sudo rabbitmqctl set_user_tags <your_rabbitmq_web_user> administrator
+sudo rabbitmqctl set_permissions -p / <your_rabbitmq_web_user> ".*" ".*" ".*"
+sudo rabbitmq-plugins enable rabbitmq_management
+sudo chown -R rabbitmq:rabbitmq /etc/rabbitmq/
+
+
+sudo rabbitmqctl add_vhost airflow
+sudo rabbitmqctl set_permissions -p airflow <your_rabbitmq_web_user> ".*" ".*" ".*"
+
+
+sudo apt remove python3-openssl
+pip install pip --upgrade
+pip install pyopenssl --upgrade

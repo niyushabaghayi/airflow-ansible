@@ -1,0 +1,11 @@
+[Unit]
+Description=Statsd exporter service for Prometheus
+Documentation=https://prometheus.io/docs/
+After=network-online.target
+
+[Service]
+User=root
+Restart=on-failure
+ExecStart=/bigdata/monitoring/statsd_exporter/statsd_exporter --statsd.listen-tcp=:'{{statsd_port}}' --web.listen-address=:'9102' --log.level debug --statsd.mapping-config=/bigdata/monitoring/statsd_config.yaml
+[Install]
+WantedBy=multi-user.target

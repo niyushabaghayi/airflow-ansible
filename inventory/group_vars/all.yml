@@ -1,0 +1,5 @@
+---
+airflow_user: airflow
+airflow_password: airflow
+airflow_group: airflow
+airflow_remote_server_path: /bigdata/airflow

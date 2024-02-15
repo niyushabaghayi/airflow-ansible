@@ -1,0 +1,5 @@
+---
+- hosts: airflow
+  roles:
+    - prerequisites
+    - deploy-airflow

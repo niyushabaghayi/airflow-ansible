@@ -1,0 +1,44 @@
+---
+
+- name: Remove Airflow Celery
+  ansible.builtin.pip:
+    name: apache-airflow[celery]
+    state: absent
+  become: true
+  
+- name: Remove Install psycopg2
+  ansible.builtin.pip:
+    name: psycopg2-binary
+    state: absent
+  become: true
+
+- name: Remove Airflow Packages
+  ansible.builtin.pip:
+    state: absent
+    name:
+      - "{{ item }}"
+  with_items: "{{ airflow_packages }}"
+  become: true
+
+- name: Remove Airflow Constraints
+  ansible.builtin.pip:
+    state: absent
+    name:
+      - "{{ item }}"
+  with_items: "{{ airflow_constraints }}"
+  become: true
+
+- name: Find files with "airflow" in their name
+  find:
+    paths: "/"
+    patterns: "*airflow*"
+    recurse: yes
+  register: airflow_files
+  become: true
+
+- name: Remove Airflow files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ airflow_files.files }}"
+  become: true

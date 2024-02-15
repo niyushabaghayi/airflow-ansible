@@ -1,0 +1,31 @@
+---
+all:
+  hosts:
+    server1:
+      ansible_host: airflow-pro-1
+    server2:
+      ansible_host: airflow-pro-2
+    server3:
+      ansible_host: airflow-pro-3
+    rabbitmq:
+      ansible_host: rabbitmq-pro-1
+    postgres_primary:
+      ansible_host: postgres-airflow-pro-1
+    postgres_replica:
+      ansible_host: postgres-airflow-pro-2
+  children:
+    airflow:
+      hosts:
+        server1:
+        server2:
+        server3:
+    scheduler_webserver:
+      hosts:
+        server1:
+    rabbitmq:
+      hosts:
+        rabbitmq:
+    postgres:
+      hosts:
+        postgres_primary:
+        postgres_replica:

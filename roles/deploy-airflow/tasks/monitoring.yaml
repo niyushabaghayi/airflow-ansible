@@ -1,0 +1,28 @@
+---
+- name: Configure statsd_config.yaml
+  template:
+    src: "../templates/statsd_config.yaml.j2"
+    dest: "/bigdata/monitoring/statsd_config.yaml"
+    mode: 0755
+  become: true
+
+- name: Configure statsd-exporter.service
+  template:
+    src: "../templates/statsd-exporter.service.j2"
+    dest: "/etc/systemd/system/statsd-exporter.service"
+    mode: 0755
+  notify: Reload systemd
+  become: true
+
+- name: Enable statsd-exporter service 
+  ansible.builtin.service:
+    name: statsd-exporter
+    enabled: yes
+  become: true
+
+- name: Start statsd-exporter service 
+  ansible.builtin.service:
+    name: statsd-exporter
+    state: started
+    enabled: yes
+  become: true

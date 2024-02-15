@@ -1,0 +1,4 @@
+---
+airflow_cfg_paths: 
+  - "{{ airflow_remote_server_path }}/airflow.cfg"
+  - "/root/airflow/airflow.cfg"

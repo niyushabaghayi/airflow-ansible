@@ -1,0 +1,154 @@
+---
+- name: Configure constraint
+  template:
+    src: "../templates/constraint.j2"
+    dest: "{{ airflow_remote_server_path }}/constraints-3.8.txt"
+  become: true
+
+- name: Install psycopg2
+  ansible.builtin.pip:
+    name: psycopg2-binary
+    extra_args: -i https://jfrog.farabixo.tech/artifactory/api/pypi/pypi-org/simple
+  become: true
+
+- name: Install Airflow Celery
+  ansible.builtin.pip:
+    name: apache-airflow[{{airflow_providers}}]=={{airflow_version}}
+    extra_args: -i https://jfrog.farabixo.tech/artifactory/api/pypi/pypi-org/simple --constraint "{{ airflow_remote_server_path }}/constraints-3.8.txt"
+  become: true
+
+- name: Airflow db migrate
+  command: airflow db migrate
+  become: true
+  
+- name: Configure airflow.cfg
+  template:
+    src: "../templates/airflow.cfg.j2"
+    dest: "{{ item }}"
+  with_items: "{{ airflow_cfg_paths }}"
+  become: true
+
+- name: Configure airflow environment
+  template:
+    src: "../templates/airflow.j2"
+    dest: "/etc/sysconfig/airflow"
+  become: true
+
+- name: Change ownership of a directory
+  ansible.builtin.file:
+    path: "{{ airflow_remote_server_path }}"
+    owner: "{{ airflow_user }}"
+    group: "{{ airflow_group }}"
+    recurse: yes
+  become: true
+
+- name: Airflow db migrate
+  command: airflow db migrate
+  become: true
+
+- name: Configure airflow-scheduler.service
+  template:
+    src: "../templates/airflow-scheduler.service.j2"
+    dest: "/etc/systemd/system/airflow-scheduler.service"
+    mode: 0755
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Configure airflow-webserver.service
+  template:
+    src: "../templates/airflow-webserver.service.j2"
+    dest: "/etc/systemd/system/airflow-webserver.service"
+    mode: 0755
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Configure airflow-celery-worker.service
+  template:
+    src: "../templates/airflow-celery-worker.service.j2"
+    dest: "/etc/systemd/system/airflow-celery-worker.service"
+    mode: 0755
+  notify: Reload systemd
+  become: true
+
+- name: Configure airflow-celery-flower.service
+  template:
+    src: "../templates/airflow-celery-flower.service.j2"
+    dest: "/etc/systemd/system/airflow-celery-flower.service"
+    mode: 0755
+  notify: Reload systemd
+  become: true
+
+- name: Add admin user to Airflow
+  command: "airflow users  create --role Admin --username {{ airflow_web_username }} --email admin --firstname admin --lastname admin --password {{ airflow_web_password }}"
+  become: true
+
+- name: Airflow db migrate
+  command: airflow db migrate
+  become: true
+
+- name: Create MinIO connection for Airflow logs
+  command: >
+    airflow connections add '{{ remote_log_conn_id }}'
+    --conn-type 'S3'
+    --conn-login '{{ s3_access_key }}'
+    --conn-password '{{ s3_secret_key }}'
+    --conn-extra '{"host": "{{ s3_host }}", "aws_access_key_id": "{{ s3_access_key }}", "aws_secret_access_key": "{{ s3_secret_key }}"}'
+  environment:
+    AIRFLOW_HOME: "{{ airflow_remote_server_path }}"
+  become: true
+
+- name: Enable scheduler service 
+  ansible.builtin.service:
+    name: airflow-scheduler
+    enabled: yes
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Start scheduler service 
+  ansible.builtin.service:
+    name: airflow-scheduler
+    state: started
+    enabled: yes
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Enable webserver service 
+  ansible.builtin.service:
+    name: airflow-webserver
+    enabled: yes
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Start webserver service 
+  ansible.builtin.service:
+    name: airflow-webserver
+    state: started
+    enabled: yes
+  when: "inventory_hostname in groups['scheduler_webserver']"
+  become: true
+
+- name: Enable celery worker service 
+  ansible.builtin.service:
+    name: airflow-celery-worker
+    enabled: yes
+  become: true
+
+- name: Start celery worker service 
+  ansible.builtin.service:
+    name: airflow-celery-worker
+    state: started
+    enabled: yes
+  become: true
+
+- name: Enable celery flower service 
+  ansible.builtin.service:
+    name: airflow-celery-flower
+    enabled: yes
+  become: true
+
+- name: Start celery flower service 
+  ansible.builtin.service:
+    name: airflow-celery-flower
+    state: started
+    enabled: yes
+  become: true

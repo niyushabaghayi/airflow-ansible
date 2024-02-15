@@ -1,0 +1,8 @@
+---
+- name: Remove Prerequisites
+  ansible.builtin.pip:
+    state: absent
+    name:
+      - "{{ item }}"
+  with_items: "{{ python_required_stuff }}"
+  become: true

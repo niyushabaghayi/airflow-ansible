@@ -1,0 +1,11 @@
+---
+rabbitmq_user: rabbitmq
+rabbitmq_password: rabbitmq
+rabbitmq_group: rabbitmq
+rabbitmq_web_user: <your_rabbitmq_web_user>
+rabbitmq_web_password: <your_rabbitmq_web_password>
+rabbitmq_remote_server_path: /bigdata/rabbitmq
+rabbitmq_debian_file: rabbitmq-server_3.12.10-1_all.deb
+erlang_debian_file: erlang-asn1_26.1.2-1rmq1ppa1~ubuntu22.04.1_amd64.deb
+apt_list_files_path: ~/Desktop/Soshyant/airflow-ansible/roles/deploy-rabbitmq
+apt_list_files_path_remote_servers: /usr/share/keyrings

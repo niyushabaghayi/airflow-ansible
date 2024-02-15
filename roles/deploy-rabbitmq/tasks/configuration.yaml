@@ -1,0 +1,78 @@
+---
+
+- name: Configure com.rabbitmq.team.gpg
+  template:
+    src: ../templates/com.rabbitmq.team.gpg.j2
+    dest: "{{ apt_list_files_path_remote_servers }}/com.rabbitmq.team.gpg"
+    owner: "{{ rabbitmq_user }}"
+  become: true
+
+- name: Configure rabbitmq.9F4587F226208342.gpg
+  template:
+    src: ../templates/rabbitmq.9F4587F226208342.gpg.j2
+    dest: "{{ apt_list_files_path_remote_servers }}/rabbitmq.9F4587F226208342.gpg"
+  become: true
+
+- name: Configure rabbitmq.E495BB49CC4BBE5B.gpg
+  template:
+    src: ../templates/rabbitmq.E495BB49CC4BBE5B.gpg.j2
+    dest: "{{ apt_list_files_path_remote_servers }}/rabbitmq.E495BB49CC4BBE5B.gpg"
+  become: true
+
+- name: Configure rabbitmq.list
+  template:
+    src: ../templates/rabbitmq.list.j2
+    dest: "/etc/apt/sources.list.d/rabbitmq.list"
+  become: true
+
+- name: Install RabbitMQ package
+  ansible.builtin.apt:
+    name: rabbitmq-server
+  become: true
+
+- name: Configure rabbitmq.conf
+  template:
+    src: ../templates/rabbitmq.conf.j2
+    dest: "/etc/rabbitmq/rabbitmq.conf"
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+    mode: 0644
+  become: true
+
+- name: Configure rabbitmq-env.conf
+  template:
+    src: ../templates/rabbitmq-env.conf.j2
+    dest: "/etc/rabbitmq/rabbitmq-env.conf"
+    owner: "{{ rabbitmq_user }}"
+    group: "{{ rabbitmq_group }}"
+    mode: 0644
+  become: true
+
+- name: Enables the rabbitmq_management plugin
+  rabbitmq_plugin:
+    names: rabbitmq_management
+    state: enabled
+    broker_state: offline
+  become: true
+
+- name: Unmask rabbitmq-server service
+  ansible.builtin.systemd:
+    name: rabbitmq-server
+    masked: no
+
+# - name: Add Admin user
+#   community.rabbitmq.rabbitmq_user:
+#     user: "{{ rabbitmq_web_user }}"
+#     password: "{{ rabbitmq_web_password }}"
+#     vhost: /
+#     configure_priv: .*
+#     read_priv: .*
+#     write_priv: .*
+#     tags: administrator
+#     state: present
+
+- name: Start rabbitmq-server service 
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes

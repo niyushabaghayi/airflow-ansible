@@ -1,0 +1,30 @@
+---
+dependencies: 
+  # - libncurses5
+  # - libsctp1
+  - socat
+  - logrotate
+  - init-system-helpers
+  - adduser
+
+erlang_dependencies: 
+  # - elixir
+  # - erlang
+  # - esl-erlang
+  - erlang-base
+  - erlang-asn1
+  - erlang-crypto
+  - erlang-eldap
+  - erlang-ftp
+  - erlang-inets
+  - erlang-mnesia
+  - erlang-os-mon  
+  - erlang-parsetools
+  - erlang-public-key
+  - erlang-runtime-tools
+  - erlang-snmp
+  - erlang-ssl
+  - erlang-syntax-tools
+  - erlang-tftp
+  - erlang-tools
+  - erlang-xmerl
